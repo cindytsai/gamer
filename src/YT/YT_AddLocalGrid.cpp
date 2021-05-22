@@ -20,7 +20,7 @@
 //                FieldList     : List of field_name, field_define_type, field_dimension.
 // Return      :  None
 //-------------------------------------------------------------------------------------------------------
-void YT_AddLocalGrid( const int *GID_Offset, const int *GID_LvStart, const int (*NPatchAllRank)[NLEVEL], int NField, yt_field *FieldList)
+void YT_AddLocalGrid( const int *GID_Offset, const int *GID_LvStart, const int (*NPatchAllRank)[NLEVEL], int NField, yt_field *FieldList, real CCMagFieldData[][3][PS1][PS1][PS1])
 {
 
    if ( OPT__VERBOSE  &&  MPI_Rank == 0 )    Aux_Message( stdout, "%s ...\n", __FUNCTION__ );
@@ -151,23 +151,51 @@ void YT_AddLocalGrid( const int *GID_Offset, const int *GID_LvStart, const int (
 #        endif
 
 #        ifdef MHD
+         // TODO: Check CCMagXYZ, comment this block out, as they are specific for inputting MagXYZ
+//         for (int v = 0; v < NCOMP_MAG; v++){
+//             // to make the input order same as FieldList
+//             YT_Grids[LID].field_data[NField-(NCOMP_MAG-v)] = amr->patch[MagSg][lv][PID]->magnetic[v];
+//             // input the field dimension, since MHD has different dimension.
+//             for (int d = 0; d < 3; d++){
+//                 FieldList[NField-(NCOMP_MAG-v)].field_dimension[d] = PATCH_SIZE; // Patch size
+//                 if ( FieldList[NField-(NCOMP_MAG-v)].field_name == "MagX" && d == 2) {
+//                     FieldList[NField-(NCOMP_MAG-v)].field_dimension[d] = PATCH_SIZE + 1;
+//                 }
+//                 if ( FieldList[NField-(NCOMP_MAG-v)].field_name == "MagY" && d == 1) {
+//                     FieldList[NField-(NCOMP_MAG-v)].field_dimension[d] = PATCH_SIZE + 1;
+//                 }
+//                 if ( FieldList[NField-(NCOMP_MAG-v)].field_name == "MagZ" && d == 0) {
+//                     FieldList[NField-(NCOMP_MAG-v)].field_dimension[d] = PATCH_SIZE + 1;
+//                 }
+//             }
+//         }
+
+         // TODO: Check CCMagXYZ
+         // (1) For inputing MagXYZ
          for (int v = 0; v < NCOMP_MAG; v++){
              // to make the input order same as FieldList
-             YT_Grids[LID].field_data[NField-(NCOMP_MAG-v)] = amr->patch[MagSg][lv][PID]->magnetic[v];
-             // input the field dimension, since MHD has different dimension. // TODO: This is hard-coded
+             YT_Grids[LID].field_data[(NField - 3)-(NCOMP_MAG-v)] = amr->patch[MagSg][lv][PID]->magnetic[v];
+             // input the field dimension, since MHD has different dimension.
              for (int d = 0; d < 3; d++){
-                 FieldList[NField-(NCOMP_MAG-v)].field_dimension[d] = PATCH_SIZE; // Patch size
-                 if ( FieldList[NField-(NCOMP_MAG-v)].field_name == "MagX" && d == 2) {
-                     FieldList[NField-(NCOMP_MAG-v)].field_dimension[d] = PATCH_SIZE + 1;
+                 FieldList[(NField - 3)-(NCOMP_MAG-v)].field_dimension[d] = PATCH_SIZE; // Patch size
+                 if ( FieldList[(NField - 3)-(NCOMP_MAG-v)].field_name == "MagX" && d == 2) {
+                     FieldList[(NField - 3)-(NCOMP_MAG-v)].field_dimension[d] = PATCH_SIZE + 1;
                  }
-                 if ( FieldList[NField-(NCOMP_MAG-v)].field_name == "MagY" && d == 1) {
-                     FieldList[NField-(NCOMP_MAG-v)].field_dimension[d] = PATCH_SIZE + 1;
+                 if ( FieldList[(NField - 3)-(NCOMP_MAG-v)].field_name == "MagY" && d == 1) {
+                     FieldList[(NField - 3)-(NCOMP_MAG-v)].field_dimension[d] = PATCH_SIZE + 1;
                  }
-                 if ( FieldList[NField-(NCOMP_MAG-v)].field_name == "MagZ" && d == 0) {
-                     FieldList[NField-(NCOMP_MAG-v)].field_dimension[d] = PATCH_SIZE + 1;
+                 if ( FieldList[(NField - 3)-(NCOMP_MAG-v)].field_name == "MagZ" && d == 0) {
+                     FieldList[(NField - 3)-(NCOMP_MAG-v)].field_dimension[d] = PATCH_SIZE + 1;
                  }
              }
          }
+         // (2) For inputting CCMagXYZ
+         // Temperary data for CCMagFieldData declare in YT_Inline.cpp line ().
+         for (int v = 0; v < NCOMP_MAG; v++){
+             // to make the input order same as FieldList
+             YT_Grids[LID].field_data[NField-(NCOMP_MAG-v)] = CCMagFieldData[LID][v];
+         }
+         ////////////////////////////// Check CCMagXYZ
 #        endif
 
          LID = LID + 1;

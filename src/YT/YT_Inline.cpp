@@ -3,7 +3,8 @@
 #ifdef SUPPORT_LIBYT
 
 void YT_SetParameter( const int NPatchAllLv, const int NField, const int NPatchLocalLv, yt_field *FieldList );
-void YT_AddLocalGrid( const int *GID_Offset, const int *GID_LvStart, const int (*NPatchAllRank)[NLEVEL], int NField, yt_field *FieldList);
+void YT_AddLocalGrid( const int *GID_Offset, const int *GID_LvStart, const int (*NPatchAllRank)[NLEVEL], int NField, yt_field *FieldList, real CCMagFieldData[][3][PS1][PS1][PS1]);
+
 
 
 
@@ -66,6 +67,7 @@ void YT_Inline()
 #ifdef MHD
    int MHDIdx = NField;
    NField = NField + NCOMP_MAG;
+   NField = NField + NCOMP_MAG; // TODO: Check CCMagXYZ
 #endif
 
 // 2-2. determine the field labels, and declare a yt_field type array
@@ -80,10 +82,13 @@ void YT_Inline()
 #endif
 
 #ifdef MHD
+   char *CCMagLabel[3] = {"CCMagX", "CCMagY", "CCMagZ"};
    for (int v=0; v<NCOMP_MAG; v++){
        FieldList[v + MHDIdx].field_name        = MagLabel[v];
        FieldList[v + MHDIdx].field_define_type = "face-centered";
        FieldList[v + MHDIdx].field_unit        = "code_magnetic";
+
+       FieldList[3 + v + MHDIdx].field_name = CCMagLabel[v];  // TODO: Check CCMagXYZ
    }
    FieldList[ MHDIdx ].field_display_name = "B_x";
    FieldList[ MHDIdx + 1 ].field_display_name = "B_y";
@@ -99,9 +104,32 @@ void YT_Inline()
 // 2-3. Call YT_SetParameter
    YT_SetParameter( NPatchAllLv, NField, NPatchLocalLv, FieldList );
 
+// TODO: Check CCMagXYZ
+   real CCMagFieldData[NPatchLocalLv][3][PS1][PS1][PS1]; // Store CCMagXYZ Data temporary.
+   int LID = 0;
+   for (int lv=0; lv<NLEVEL; lv++){
+       for (int PID=0; PID<(amr->NPatchComma[lv][1]); PID++){
+
+           real CCMag_1Cell[NCOMP_MAG];
+
+           for (int k=0; k<PS1; k++){
+               for (int j=0; j<PS1; j++){
+                   for (int i=0; i<PS1; i++){
+                       MHD_GetCellCenteredBFieldInPatch( CCMag_1Cell, lv, PID, i, j, k, amr->MagSg[lv]);
+                       for (int Bv=0; Bv<3; Bv++){
+                           CCMagFieldData[LID][Bv][i][j][k] = CCMag_1Cell[Bv];
+                       }
+                   }
+               }
+           }
+
+           LID = LID + 1;
+       }
+   }
+////////////////////// Check CCMagXYZ
 
 // 3. prepare local patches for libyt
-   YT_AddLocalGrid( GID_Offset, GID_LvStart, NPatchAllRank, NField, FieldList);
+   YT_AddLocalGrid( GID_Offset, GID_LvStart, NPatchAllRank, NField, FieldList, CCMagFieldData);
 
 
 // 4. perform yt inline analysis
