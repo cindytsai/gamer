@@ -117,7 +117,7 @@ void YT_Inline()
                    for (int i=0; i<PS1; i++){
                        MHD_GetCellCenteredBFieldInPatch( CCMag_1Cell, lv, PID, i, j, k, amr->MagSg[lv]);
                        for (int Bv=0; Bv<3; Bv++){
-                           CCMagFieldData[LID][Bv][i][j][k] = CCMag_1Cell[Bv];
+                           CCMagFieldData[LID][Bv][k][j][i] = CCMag_1Cell[Bv];
                        }
                    }
                }
