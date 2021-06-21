@@ -5,7 +5,9 @@
 void YT_SetParameter( const int NPatchAllLv, const int NField, const int NPatchLocalLv, yt_field *FieldList );
 void YT_AddLocalGrid( const int *GID_Offset, const int *GID_LvStart, const int (*NPatchAllRank)[NLEVEL], int NField, yt_field *FieldList, real CCMagFieldData[][3][PS1][PS1][PS1]);
 
-
+void MagX_DerivedFunc(long GID, double *Converted_MagX);
+void MagY_DerivedFunc(long GID, double *Converted_MagY);
+void MagZ_DerivedFunc(long GID, double *Converted_MagZ);
 
 
 //-------------------------------------------------------------------------------------------------------
@@ -84,15 +86,23 @@ void YT_Inline()
 #ifdef MHD
    char *CCMagLabel[3] = {"CCMagX", "CCMagY", "CCMagZ"};
    for (int v=0; v<NCOMP_MAG; v++){
+       // Add field name, define type, unit
        FieldList[v + MHDIdx].field_name        = MagLabel[v];
-       FieldList[v + MHDIdx].field_define_type = "face-centered";
+       FieldList[v + MHDIdx].field_define_type = "derived_func";
        FieldList[v + MHDIdx].field_unit        = "code_magnetic";
 
        FieldList[3 + v + MHDIdx].field_name = CCMagLabel[v];  // TODO: Check CCMagXYZ
    }
+
+   // Add field display name
    FieldList[ MHDIdx ].field_display_name = "B_x";
    FieldList[ MHDIdx + 1 ].field_display_name = "B_y";
    FieldList[ MHDIdx + 2 ].field_display_name = "B_z";
+
+   // Add field derived function pointer
+   FieldList[ MHDIdx ].derived_func = MagX_DerivedFunc;
+   FieldList[ MHDIdx + 1 ].derived_func = MagY_DerivedFunc;
+   FieldList[ MHDIdx + 2 ].derived_func = MagZ_DerivedFunc;
 
    // Add alias names to "MAGX"
    char *MHDX_name_alias[2] = {"test_alias_name", "magnetic_x"};
