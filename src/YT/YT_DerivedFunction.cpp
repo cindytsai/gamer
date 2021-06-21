@@ -30,7 +30,8 @@ void MagX_DerivedFunc(long gid, double *Converted_MagX){
         for (int j=0; j<Dimensions[1]; j++){
             for (int i=0; i<Dimensions[2]; i++){
                 int idx_Bx = IDX321_BX(i, j, k, Dimensions[2], Dimensions[1]);
-                Converted_MagX[idx_Bx] = (double) 0.5 * ( Data[ idx_Bx ] + Data[ idx_Bx + 1 ] );
+                int idx_cc = i + j * Dimensions[2] + k * Dimensions[2] * Dimensions[1];
+                Converted_MagX[idx_cc] = (double) 0.5 * ( Data[ idx_Bx ] + Data[ idx_Bx + 1 ] );
             }
         }
     }
@@ -51,7 +52,8 @@ void MagY_DerivedFunc(long gid, double *Converted_MagY){
         for (int j=0; j<Dimensions[1]; j++){
             for (int i=0; i<Dimensions[2]; i++){
                 int idx_By = IDX321_BY(i, j, k, Dimensions[2], Dimensions[1]);
-                Converted_MagY[idx_By] = (double) 0.5 * ( Data[ idx_By ] + Data[ idx_By + Dimensions[2] ] );
+                int idx_cc = i + j * Dimensions[2] + k * Dimensions[2] * Dimensions[1];
+                Converted_MagY[idx_cc] = (double) 0.5 * ( Data[ idx_By ] + Data[ idx_By + Dimensions[2] ] );
             }
         }
     }
@@ -72,7 +74,8 @@ void MagZ_DerivedFunc(long gid, double *Converted_MagZ){
         for (int j=0; j<Dimensions[1]; j++){
             for (int i=0; i<Dimensions[2]; i++){
                 int idx_Bz = IDX321_BZ(i, j, k, Dimensions[2], Dimensions[1]);
-                Converted_MagZ[idx_Bz] = (double) 0.5 * ( Data[ idx_Bz ] + Data[ idx_Bz + Dimensions[2] * Dimensions[1] ] );
+                int idx_cc = i + j * Dimensions[2] + k * Dimensions[2] * Dimensions[1];
+                Converted_MagZ[idx_cc] = (double) 0.5 * ( Data[ idx_Bz ] + Data[ idx_Bz + Dimensions[2] * Dimensions[1] ] );
             }
         }
     }
