@@ -15,7 +15,7 @@
 //
 // Return      :  None
 //-------------------------------------------------------------------------------------------------------
-void MagX_DerivedFunc(long GID, double *Converted_MagX){
+void MagX_DerivedFunc(long gid, double *Converted_MagX){
     // Get the dimension of the grid, and the data array pointer of the grid
     int Dimensions[3];
     void *DataRaw;
@@ -30,13 +30,13 @@ void MagX_DerivedFunc(long GID, double *Converted_MagX){
         for (int j=0; j<Dimensions[1]; j++){
             for (int i=0; i<Dimensions[2]; i++){
                 int idx_Bx = IDX321_BX(i, j, k, Dimensions[2], Dimensions[1]);
-                Converted_MagX[inx_Bx] = (double) 0.5 * ( Data[ idx_Bx ] + Data[ idx_Bx + 1 ] );
+                Converted_MagX[idx_Bx] = (double) 0.5 * ( Data[ idx_Bx ] + Data[ idx_Bx + 1 ] );
             }
         }
     }
 }
 
-void MagY_DerivedFunc(long GID, double *Converted_MagY){
+void MagY_DerivedFunc(long gid, double *Converted_MagY){
     // Get the dimension of the grid, and the data array pointer of the grid
     int Dimensions[3];
     void *DataRaw;
@@ -51,13 +51,13 @@ void MagY_DerivedFunc(long GID, double *Converted_MagY){
         for (int j=0; j<Dimensions[1]; j++){
             for (int i=0; i<Dimensions[2]; i++){
                 int idx_By = IDX321_BY(i, j, k, Dimensions[2], Dimensions[1]);
-                Converted_MagY[inx_By] = (double) 0.5 * ( Data[ idx_By ] + Data[ idx_By + Dimensions[2] ] );
+                Converted_MagY[idx_By] = (double) 0.5 * ( Data[ idx_By ] + Data[ idx_By + Dimensions[2] ] );
             }
         }
     }
 }
 
-void MagZ_DerivedFunc(long GID, double *Converted_MagZ){
+void MagZ_DerivedFunc(long gid, double *Converted_MagZ){
     // Get the dimension of the grid, and the data array pointer of the grid
     int Dimensions[3];
     void *DataRaw;
@@ -72,7 +72,7 @@ void MagZ_DerivedFunc(long GID, double *Converted_MagZ){
         for (int j=0; j<Dimensions[1]; j++){
             for (int i=0; i<Dimensions[2]; i++){
                 int idx_Bz = IDX321_BZ(i, j, k, Dimensions[2], Dimensions[1]);
-                Converted_MagZ[inx_Bz] = (double) 0.5 * ( Data[ idx_Bz ] + Data[ idx_Bz + Dimensions[2] * Dimensions[1] ] );
+                Converted_MagZ[idx_Bz] = (double) 0.5 * ( Data[ idx_Bz ] + Data[ idx_Bz + Dimensions[2] * Dimensions[1] ] );
             }
         }
     }

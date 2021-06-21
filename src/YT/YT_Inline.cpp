@@ -5,9 +5,9 @@
 void YT_SetParameter( const int NPatchAllLv, const int NField, const int NPatchLocalLv, yt_field *FieldList );
 void YT_AddLocalGrid( const int *GID_Offset, const int *GID_LvStart, const int (*NPatchAllRank)[NLEVEL], int NField, yt_field *FieldList, real CCMagFieldData[][3][PS1][PS1][PS1]);
 
-void MagX_DerivedFunc(long GID, double *Converted_MagX);
-void MagY_DerivedFunc(long GID, double *Converted_MagY);
-void MagZ_DerivedFunc(long GID, double *Converted_MagZ);
+void MagX_DerivedFunc(long gid, double *Converted_MagX);
+void MagY_DerivedFunc(long gid, double *Converted_MagY);
+void MagZ_DerivedFunc(long gid, double *Converted_MagZ);
 
 
 //-------------------------------------------------------------------------------------------------------
