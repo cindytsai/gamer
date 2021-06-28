@@ -1,8 +1,9 @@
 #include "GAMER.h"
 
-#ifdef MHD
+
 #ifdef SUPPORT_LIBYT
 
+#ifdef MHD
 //-------------------------------------------------------------------------------------------------------
 // Function    :  MagX/Y/Z_DerivedFunc
 // Description :  Derived function for MagX/Y/Z
@@ -82,4 +83,42 @@ void MagZ_DerivedFunc(long gid, double *Converted_MagZ){
 }
 
 #endif
+
+
+//-------------------------------------------------------------------------------------------------------
+// Function    :  VelocityX_DerivedFunc
+// Description :  Derived function for velocity_x, it is meant for testing. We can always derived through
+//                yt.
+//
+// Note        :  1. This function's pointer will be passed into libyt.
+//                2. The argument should be declared like this, in order to match the libyt API.
+//
+// Parameter   :  GID            : Grid GID
+//                Converted_MagX : Store the converted field data here.
+//
+// Return      :  None
+//-------------------------------------------------------------------------------------------------------
+void VelocityX_DerivedFunc(long gid, double *VelocityX){
+    // Get the dimension of the grid, and the data array pointer of the grid
+    int Dimensions[3];
+    void *DataRaw1, *DataRaw2;
+    yt_getGridInfo_Dimensions( gid, &Dimensions );
+    yt_getGridInfo_FieldData( gid, "MomX", &DataRaw1 );
+    yt_getGridInfo_FieldData( gid, "Dens", &DataRaw2 );
+
+    // Cast the DataRaw1/2
+    real *MomX = (real *) DataRaw1;
+    real *Dens = (real *) DataRaw2;
+
+    // Compute converted field via data. [z, y, x] direction.
+    for (int k=0; k<Dimensions[0]; k++){
+        for (int j=0; j<Dimensions[1]; j++){
+            for (int i=0; i<Dimensions[2]; i++){
+                int idx_cc = i + j * Dimensions[2] + k * Dimensions[2] * Dimensions[1];
+                VelocityX[idx_cc] = (double) MomX[idx_cc] / Dens[idx_cc];
+            }
+        }
+    }
+}
+
 #endif

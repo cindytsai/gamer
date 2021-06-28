@@ -8,6 +8,7 @@ void YT_AddLocalGrid( const int *GID_Offset, const int *GID_LvStart, const int (
 void MagX_DerivedFunc(long gid, double *Converted_MagX);
 void MagY_DerivedFunc(long gid, double *Converted_MagY);
 void MagZ_DerivedFunc(long gid, double *Converted_MagZ);
+void VelocityX_DerivedFunc(long gid, double *VelocityX); // TODO: Check on deriving velocity_x = MomX / Dens
 
 
 //-------------------------------------------------------------------------------------------------------
@@ -61,6 +62,7 @@ void YT_Inline()
 // 2. prepare YT-specific parameters
 // 2-1. determine the number of fields
    int NField = NCOMP_TOTAL;
+   NField = NField + 1; // TODO: Check on deriving velocity_x = MomX / Dens
 #  ifdef GRAVITY
    int PotIdx = NField;
    NField = NField + 1;
@@ -78,6 +80,12 @@ void YT_Inline()
    for (int v=0; v<NCOMP_TOTAL; v++){
        FieldList[v].field_name = FieldLabel[v];
    }
+
+   FieldList[NCOMP_TOTAL].field_name        = "VELX"; // TODO: Check on deriving velocity_x = MomX / Dens
+   FieldList[NCOMP_TOTAL].field_define_type = "derived_func";
+   FieldList[NCOMP_TOTAL].field_unit        = "code_length / code_time";
+   FieldList[NCOMP_TOTAL].field_display_name = "V_x";
+   FieldList[NCOMP_TOTAL].derived_func = VelocityX_DerivedFunc;
 
 #ifdef GRAVITY
    FieldList[PotIdx].field_name = PotLabel;
