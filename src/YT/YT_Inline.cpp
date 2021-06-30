@@ -2,7 +2,7 @@
 
 #ifdef SUPPORT_LIBYT
 
-void YT_SetParameter( const int NPatchAllLv, const int NField, const int NPatchLocalLv, yt_field *FieldList );
+void YT_SetParameter( const int NPatchAllLv, const int NField, const int NPatchLocalLv);
 void YT_AddLocalGrid( const int *GID_Offset, const int *GID_LvStart, const int (*NPatchAllRank)[NLEVEL], int NField, yt_field *FieldList, real CCMagFieldData[][3][PS1][PS1][PS1]);
 
 void MagX_DerivedFunc(long gid, double *Converted_MagX);
@@ -74,9 +74,14 @@ void YT_Inline()
    NField = NField + NCOMP_MAG; // TODO: Check CCMagXYZ
 #endif
 
-// 2-2. determine the field labels, and declare a yt_field type array
+// 2-2. Call YT_SetParameter
+   YT_SetParameter( NPatchAllLv, NField, NPatchLocalLv);
+
+// 2-3. determine the field labels, and declare a yt_field type array
 //      which stores the field labels and field define type (ex: cell-centered, face-centered)
-   yt_field *FieldList = new yt_field [NField];
+   yt_field *FieldList;
+   yt_get_fieldsPtr( &FieldList );
+
    for (int v=0; v<NCOMP_TOTAL; v++){
        FieldList[v].field_name = FieldLabel[v];
    }
@@ -84,7 +89,7 @@ void YT_Inline()
    FieldList[NCOMP_TOTAL].field_name        = "VELX"; // TODO: Check on deriving velocity_x = MomX / Dens
    FieldList[NCOMP_TOTAL].field_define_type = "derived_func";
    FieldList[NCOMP_TOTAL].field_unit        = "code_length / code_time";
-   FieldList[NCOMP_TOTAL].field_display_name = "V_x";
+//   FieldList[NCOMP_TOTAL].field_display_name = "V_x";
    FieldList[NCOMP_TOTAL].derived_func = VelocityX_DerivedFunc;
 
 #ifdef GRAVITY
@@ -119,8 +124,6 @@ void YT_Inline()
 
 #endif
 
-// 2-3. Call YT_SetParameter
-   YT_SetParameter( NPatchAllLv, NField, NPatchLocalLv, FieldList );
 
 // TODO: Check CCMagXYZ
    real CCMagFieldData[NPatchLocalLv][3][PS1][PS1][PS1]; // Store CCMagXYZ Data temporary.
@@ -157,7 +160,6 @@ void YT_Inline()
 // 5. free resource
    if ( yt_free_gridsPtr() != YT_SUCCESS )    Aux_Error( ERROR_INFO, "yt_free_gridsPtr() failed !!\n" );
    delete [] NPatchAllRank;
-   delete [] FieldList;
 
    if ( OPT__VERBOSE  &&  MPI_Rank == 0 )    Aux_Message( stdout, "%s ... done\n", __FUNCTION__ );
 

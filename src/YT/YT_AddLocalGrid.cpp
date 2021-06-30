@@ -11,7 +11,6 @@
 //
 // Note        :  1. One must call YT_SetParameter() before invoking this function
 //                2. Invoked by YT_Inline()
-//                3. FieldList is used by MHD field, since it needs to load dimensions to yt_field.
 //
 // Parameter   :  GID_Offset    : Global patch index offset at each refinement level for this rank
 //                GID_LvStart   : Glocal patch index that this level starts at
@@ -84,7 +83,7 @@ void YT_AddLocalGrid( const int *GID_Offset, const int *GID_LvStart, const int (
          {
             YT_Grids[LID].left_edge [d] = amr->patch[0][lv][PID]->EdgeL[d];
             YT_Grids[LID].right_edge[d] = amr->patch[0][lv][PID]->EdgeR[d];
-            YT_Grids[LID].dimensions[d] = PATCH_SIZE;
+            YT_Grids[LID].grid_dimensions[d] = PATCH_SIZE;
          }
 
 #        ifdef PARTICLE
@@ -141,31 +140,31 @@ void YT_AddLocalGrid( const int *GID_Offset, const int *GID_LvStart, const int (
          
 
          for (int v = 0; v < NCOMP_TOTAL; v++){
-            YT_Grids[LID].field_data[v] = amr->patch[FluSg][lv][PID]->fluid[v];
+            YT_Grids[LID].field_data[v].data_ptr = amr->patch[FluSg][lv][PID]->fluid[v];
          }
 
          // TODO: This seems strange ... How we calculate the index is corresponded to YT_Inline.cpp line 61.
          // We assume that the order is FLUID -> GRAVITY -> MHD
 #        ifdef GRAVITY
-         YT_Grids[LID].field_data[NCOMP_TOTAL] = amr->patch[PotSg][lv][PID]->pot;
+         YT_Grids[LID].field_data[NCOMP_TOTAL].data_ptr = amr->patch[PotSg][lv][PID]->pot;
 #        endif
 
 #        ifdef MHD
          // TODO: Check CCMagXYZ, comment this block out, as they are specific for inputting MagXYZ
 //         for (int v = 0; v < NCOMP_MAG; v++){
 //             // to make the input order same as FieldList
-//             YT_Grids[LID].field_data[NField-(NCOMP_MAG-v)] = amr->patch[MagSg][lv][PID]->magnetic[v];
+//             YT_Grids[LID].field_data[NField-(NCOMP_MAG-v)].data_ptr = amr->patch[MagSg][lv][PID]->magnetic[v];
 //             // input the field dimension, since MHD has different dimension.
 //             for (int d = 0; d < 3; d++){
-//                 FieldList[NField-(NCOMP_MAG-v)].field_dimension[d] = PATCH_SIZE; // Patch size
+//                 YT_Grids[LID].field_data[NField-(NCOMP_MAG-v)].data_dim[d] = PATCH_SIZE; // Patch size
 //                 if ( FieldList[NField-(NCOMP_MAG-v)].field_name == "MagX" && d == 2) {
-//                     FieldList[NField-(NCOMP_MAG-v)].field_dimension[d] = PATCH_SIZE + 1;
+//                     YT_Grids[LID].field_data[NField-(NCOMP_MAG-v)].data_dim[d] = PATCH_SIZE + 1;
 //                 }
 //                 if ( FieldList[NField-(NCOMP_MAG-v)].field_name == "MagY" && d == 1) {
-//                     FieldList[NField-(NCOMP_MAG-v)].field_dimension[d] = PATCH_SIZE + 1;
+//                     YT_Grids[LID].field_data[NField-(NCOMP_MAG-v)].data_dim[d] = PATCH_SIZE + 1;
 //                 }
 //                 if ( FieldList[NField-(NCOMP_MAG-v)].field_name == "MagZ" && d == 0) {
-//                     FieldList[NField-(NCOMP_MAG-v)].field_dimension[d] = PATCH_SIZE + 1;
+//                     YT_Grids[LID].field_data[NField-(NCOMP_MAG-v)].data_dim[d] = PATCH_SIZE + 1;
 //                 }
 //             }
 //         }
@@ -174,18 +173,19 @@ void YT_AddLocalGrid( const int *GID_Offset, const int *GID_LvStart, const int (
          // (1) For inputing MagXYZ
          for (int v = 0; v < NCOMP_MAG; v++){
              // to make the input order same as FieldList
-             YT_Grids[LID].field_data[(NField - 3)-(NCOMP_MAG-v)] = amr->patch[MagSg][lv][PID]->magnetic[v];
+             YT_Grids[LID].field_data[(NField - 3)-(NCOMP_MAG-v)].data_ptr = amr->patch[MagSg][lv][PID]->magnetic[v];
+
              // input the field dimension, since MHD has different dimension.
              for (int d = 0; d < 3; d++){
-                 FieldList[(NField - 3)-(NCOMP_MAG-v)].field_dimension[d] = PATCH_SIZE; // Patch size
+                 YT_Grids[LID].field_data[(NField - 3)-(NCOMP_MAG-v)].data_dim[d] = PATCH_SIZE; // Patch size
                  if ( FieldList[(NField - 3)-(NCOMP_MAG-v)].field_name == "MagX" && d == 2) {
-                     FieldList[(NField - 3)-(NCOMP_MAG-v)].field_dimension[d] = PATCH_SIZE + 1;
+                     YT_Grids[LID].field_data[(NField - 3)-(NCOMP_MAG-v)].data_dim[d] = PATCH_SIZE + 1;
                  }
                  if ( FieldList[(NField - 3)-(NCOMP_MAG-v)].field_name == "MagY" && d == 1) {
-                     FieldList[(NField - 3)-(NCOMP_MAG-v)].field_dimension[d] = PATCH_SIZE + 1;
+                     YT_Grids[LID].field_data[(NField - 3)-(NCOMP_MAG-v)].data_dim[d] = PATCH_SIZE + 1;
                  }
                  if ( FieldList[(NField - 3)-(NCOMP_MAG-v)].field_name == "MagZ" && d == 0) {
-                     FieldList[(NField - 3)-(NCOMP_MAG-v)].field_dimension[d] = PATCH_SIZE + 1;
+                     YT_Grids[LID].field_data[(NField - 3)-(NCOMP_MAG-v)].data_dim[d] = PATCH_SIZE + 1;
                  }
              }
          }
@@ -193,7 +193,7 @@ void YT_AddLocalGrid( const int *GID_Offset, const int *GID_LvStart, const int (
          // Temperary data for CCMagFieldData declare in YT_Inline.cpp line ().
          for (int v = 0; v < NCOMP_MAG; v++){
              // to make the input order same as FieldList
-             YT_Grids[LID].field_data[NField-(NCOMP_MAG-v)] = CCMagFieldData[LID][v];
+             YT_Grids[LID].field_data[NField-(NCOMP_MAG-v)].data_ptr = CCMagFieldData[LID][v];
          }
          ////////////////////////////// Check CCMagXYZ
 #        endif
