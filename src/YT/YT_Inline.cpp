@@ -10,9 +10,9 @@ void YT_AddLocalGrid( const int *GID_Offset, const int *GID_LvStart, const int (
 void MagX_DerivedFunc(long gid, double *Converted_MagX);
 void MagY_DerivedFunc(long gid, double *Converted_MagY);
 void MagZ_DerivedFunc(long gid, double *Converted_MagZ);
-#endif MHD
+#endif
 
-void VelocityX_DerivedFunc(long gid, double *VelocityX); // TODO: Check on deriving velocity_x = MomX / Dens
+void VelocityX_DerivedFunc(long gid, double *VelocityX); // Check on deriving velocity_x = MomX / Dens
 
 
 //-------------------------------------------------------------------------------------------------------

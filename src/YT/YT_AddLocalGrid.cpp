@@ -16,7 +16,7 @@
 //                GID_LvStart   : Glocal patch index that this level starts at
 //                NPatchAllRank : Number of patches in [MPI rank][level]
 //                NField        : Number of fields loaded to YT.
-//                FieldList     : List of field_name, field_define_type, field_dimension.
+//                FieldList     : List of field_name, field_define_type.
 //
 // Return      :  None
 //-------------------------------------------------------------------------------------------------------
@@ -158,7 +158,6 @@ void YT_AddLocalGrid( const int *GID_Offset, const int *GID_LvStart, const int (
 #        endif
 
 #        ifdef MHD
-         // Check CCMagXYZ
          // find field index of MagX
          int MHDIdx = 0;
          for ( int v = 0; v < NField; v++ ){
@@ -171,7 +170,7 @@ void YT_AddLocalGrid( const int *GID_Offset, const int *GID_LvStart, const int (
          // (1) For inputing MagXYZ
          for (int v = 0; v < NCOMP_MAG; v++){
              // input the data pointer
-             YT_Grids[LID].field_data[ MHD + v ].data_ptr = amr->patch[MagSg][lv][PID]->magnetic[v];
+             YT_Grids[LID].field_data[ MHDIdx + v ].data_ptr = amr->patch[MagSg][lv][PID]->magnetic[v];
 
              // input the field dimension, since MHD has different dimension.
              for (int d = 0; d < 3; d++){
@@ -188,11 +187,13 @@ void YT_AddLocalGrid( const int *GID_Offset, const int *GID_LvStart, const int (
                  }
              }
          }
+
+         // Check CCMagXYZ
          // (2) For inputting CCMagXYZ
          // Temperary data for CCMagFieldData declare in YT_Inline.cpp line ().
          for (int v = 0; v < NCOMP_MAG; v++){
              // input the data pointer
-             YT_Grids[LID].field_data[ (MHD+3) + v ].data_ptr = CCMagFieldData[LID][v];
+             YT_Grids[LID].field_data[ (MHDIdx+3) + v ].data_ptr = CCMagFieldData[LID][v];
          }
          ////////////////////////////// Check CCMagXYZ
 #        endif
