@@ -99,7 +99,7 @@ void YT_Inline()
        FieldList[v].field_name = FieldLabel[v];
    }
 
-   FieldList[NCOMP_TOTAL].field_name        = "VELX"; // Check on deriving velocity_x = MomX / Dens
+   FieldList[NCOMP_TOTAL].field_name        = "velocity_x"; // Check on deriving velocity_x = MomX / Dens
    FieldList[NCOMP_TOTAL].field_define_type = "derived_func";
    FieldList[NCOMP_TOTAL].field_unit        = "code_length / code_time";
 //   FieldList[NCOMP_TOTAL].field_display_name = "V_x";
