@@ -12,7 +12,14 @@ void MagY_DerivedFunc(long gid, double *Converted_MagY);
 void MagZ_DerivedFunc(long gid, double *Converted_MagZ);
 #endif
 
-void VelocityX_DerivedFunc(long gid, double *VelocityX); // Check on deriving velocity_x = MomX / Dens
+// Check on deriving velocity_x = MomX / Dens
+void VelocityX_DerivedFunc(long gid, double *VelocityX);
+
+#ifdef PARTICLE
+// get the particle attribute, since we only have one type of particle "io"
+// we only need one function.
+void Get_ParticleAttribute(long gid, char *attr, void *raw_data);
+#endif
 
 
 //-------------------------------------------------------------------------------------------------------
@@ -79,10 +86,11 @@ void YT_Inline()
    NField = NField + NCOMP_MAG; // Check CCMagXYZ
 #endif
 
-// 2-2. Call YT_SetParameter
+// 2-2. Call YT_SetParameter and set particle info if need.
    YT_SetParameter( NPatchAllLv, NField, NPatchLocalLv);
 
-// 3. get yt_field array FieldList, and filled in field info
+// 3.   Get FieldList and ParticleList, fill the info if needed
+// 3-1. get yt_field array FieldList, and filled in field info
 //      FieldList :
 //      +----------------------------------------
 //      +       0            |                  +
@@ -90,7 +98,6 @@ void YT_Inline()
 //      + (NCOMP_TOTAL - 1)  |                  +
 //      +  GRAVITY (PotIdx)  |   cell-centered  +
 //      +  MHD     (MHDIdx)  |   face-centered  +
-//      +  CCMHD             |   cell-centered  +
 //      +---------------------------------------+
    yt_field *FieldList;
    yt_get_fieldsPtr( &FieldList );
@@ -106,7 +113,7 @@ void YT_Inline()
    FieldList[NCOMP_TOTAL].derived_func = VelocityX_DerivedFunc;
 
 #ifdef GRAVITY
-   FieldList[PotIdx].field_name = PotLabel;
+   FieldList[PotIdx].field_name = const_cast<char*> (PotLabel);
 #endif
 
 #ifdef MHD
@@ -137,15 +144,39 @@ void YT_Inline()
 
 #endif
 
+// 3-2 Get the ParticleList
+#  ifdef PARTICLE
+   yt_particle *ParticleList;
+   yt_get_particlesPtr( &ParticleList );
+
+   // Set attributes
+   for (int v=0; v<ParticleList[0].num_attr; v++){
+       // set attribute name
+       ParticleList[0].attr_list[v].attr_name  = ParAttLabel[v];
+       // set attribute data type
+#  ifdef FLOAT8
+       ParticleList[0].attr_list[v].attr_dtype = YT_DOUBLE;
+#  else
+       ParticleList[0].attr_list[v].attr_dtype = YT_FLOAT;
+#  endif
+       // set attribute unit
+    }
+
+   // Set label (attribute name) of coordinate x/y/z
+   ParticleList[0].coor_x   = "ParPosX";
+   ParticleList[0].coor_y   = "ParPosY";
+   ParticleList[0].coor_z   = "ParPosZ";
+
+   // Set get attribute function
+   ParticleList[0].get_attr = Get_ParticleAttribute;
+#  endif
 
 // Check CCMagXYZ, create CCMagXYZ for YT_AddLocalGrid to pass in
    real CCMagFieldData[NPatchLocalLv][3][PS1][PS1][PS1]; // Store CCMagXYZ Data temporary.
    int LID = 0;
    for (int lv=0; lv<NLEVEL; lv++){
        for (int PID=0; PID<(amr->NPatchComma[lv][1]); PID++){
-
            real CCMag_1Cell[NCOMP_MAG];
-
            for (int k=0; k<PS1; k++){
                for (int j=0; j<PS1; j++){
                    for (int i=0; i<PS1; i++){
@@ -176,7 +207,6 @@ void YT_Inline()
    if ( OPT__VERBOSE  &&  MPI_Rank == 0 )    Aux_Message( stdout, "%s ... done\n", __FUNCTION__ );
 
 } // FUNCTION : YT_Inline
-
 
 
 #endif // #ifdef SUPPORT_LIBYT

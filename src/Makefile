@@ -36,11 +36,11 @@ COMPILE_VERBOSE := 0
 SIMU_OPTION += -DMODEL=HYDRO
 
 # enable gravity
-#SIMU_OPTION += -DGRAVITY
+SIMU_OPTION += -DGRAVITY
 
 # enable particles
 # --> must enable GRAVITY
-#SIMU_OPTION += -DPARTICLE
+SIMU_OPTION += -DPARTICLE
 
 # support Grackle, a chemistry and radiative cooling library
 # --> must set NCOMP_PASSIVE_USER according to the primordial chemistry network set by GRACKLE_PRIMORDIAL
@@ -77,7 +77,7 @@ SIMU_OPTION += -DRSOLVER=ROE
 SIMU_OPTION += -DNCOMP_PASSIVE_USER=0
 
 # magnetohydrodynamics
-SIMU_OPTION += -DMHD
+#SIMU_OPTION += -DMHD
 
 # cosmic rays (not supported yet)
 #SIMU_OPTION += -DCOSMIC_RAY
@@ -286,7 +286,7 @@ endif
 
 # template
 CUDA_PATH    := /usr/local/cuda-11.2
-FFTW_PATH    :=
+FFTW_PATH    := /home/cindytsai/software/fftw/2.1.5-gnu
 MPI_PATH     := /home/cindytsai/software/openmpi/3.1.5-gnu
 HDF5_PATH    := /home/cindytsai/software/hdf5/1.10.6
 GRACKLE_PATH :=
@@ -390,7 +390,13 @@ LIBYT_PATH   := /home/cindytsai/Documents/GitHub/libyt
 #GRACKLE_PATH :=
 #GSL_PATH     := /usr/local/gsl-1.16
 
-
+# NASA Pleiades (intel compilers and SGI MPI)
+#CUDA_PATH    := /nasa/cuda/9.0/
+#FFTW_PATH    := /u/jzuhone/opt/fftw-2.1.5
+#MPI_PATH     := /nasa/sgi/mpt/2.14r19
+#HDF5_PATH    := /nasa/hdf5/1.8.18_serial
+#GRACKLE_PATH :=
+#GSL_PATH     :=
 
 
 
@@ -420,7 +426,8 @@ CPU_FILE    += Aux_Check_Parameter.cpp  Aux_Check_Conservation.cpp  Aux_Check.cp
 
 CPU_FILE    += CPU_FluidSolver.cpp  Flu_AdvanceDt.cpp  Flu_Prepare.cpp  Flu_Close.cpp  Flu_FixUp_Flux.cpp \
                Flu_FixUp_Restrict.cpp  Flu_AllocateFluxArray.cpp  Flu_BoundaryCondition_User.cpp  Flu_ResetByUser.cpp \
-               Flu_CorrAfterAllSync.cpp  Flu_ManageFixUpTempArray.cpp
+               Flu_CorrAfterAllSync.cpp  Flu_ManageFixUpTempArray.cpp  Flu_DerivedField_BuiltIn.cpp \
+               Flu_DerivedField_User.cpp
 
 CPU_FILE    += End_GAMER.cpp  End_MemFree.cpp  End_MemFree_Fluid.cpp  End_StopManually.cpp  End_User.cpp \
                Init_BaseLevel.cpp  Init_GAMER.cpp  Init_Load_DumpTable.cpp \
@@ -447,7 +454,7 @@ CPU_FILE    += Flag_Real.cpp  Refine.cpp   SiblingSearch.cpp  SiblingSearch_Base
                Flag_User.cpp  Flag_Check.cpp  Flag_Lohner.cpp  Flag_Region.cpp
 
 CPU_FILE    += Table_01.cpp  Table_02.cpp  Table_03.cpp  Table_04.cpp  Table_05.cpp  Table_06.cpp \
-               Table_07.cpp  Table_SiblingSharingSameEdge.cpp
+               Table_07.cpp  Table_SiblingSharingSameEdge.cpp  Table_SiblingPatch.cpp
 
 vpath %.cu     GPU_API
 vpath %.cpp    Main  Init  Refine  Fluid  Interpolation  Tables  Output  Miscellaneous  Auxiliary
@@ -532,7 +539,7 @@ GPU_FILE    += CUPOT_PoissonSolver_SOR_10to14cube.cu  CUPOT_PoissonSolver_SOR_16
                CUPOT_ExtPotSolver.cu  CUPOT_ExtPot_Tabular.cu
 
 CPU_FILE    += CPU_PoissonGravitySolver.cpp  CPU_PoissonSolver_SOR.cpp  CPU_PoissonSolver_FFT.cpp \
-               CPU_PoissonSolver_MG.cpp
+               CPU_PoissonSolver_MG.cpp  CPU_ExtPotSolver.cpp  CPU_ExtPotSolver_BaseLevel.cpp
 
 CPU_FILE    += Init_FFTW.cpp  Gra_Close.cpp  Gra_Prepare_Flu.cpp  Gra_Prepare_Pot.cpp  Gra_Prepare_Corner.cpp \
                Gra_AdvanceDt.cpp  Poi_Close.cpp  Poi_Prepare_Pot.cpp  Poi_Prepare_Rho.cpp \
@@ -623,7 +630,8 @@ vpath %.cpp    LoadBalance
 # yt inline analysis source files (included only if "SUPPORT_LIBYT" is turned on)
 # ------------------------------------------------------------------------------------
 ifeq "$(filter -DSUPPORT_LIBYT, $(SIMU_OPTION))" "-DSUPPORT_LIBYT"
-CPU_FILE    += YT_Init.cpp  YT_End.cpp  YT_SetParameter.cpp  YT_AddLocalGrid.cpp  YT_Inline.cpp YT_DerivedFunction.cpp
+CPU_FILE    += YT_Init.cpp  YT_End.cpp  YT_SetParameter.cpp  YT_AddLocalGrid.cpp  YT_Inline.cpp  YT_DerivedFunction.cpp \
+               YT_GetParticleAttribute.cpp
 
 vpath %.cpp    YT
 endif # SUPPORT_LIBYT
@@ -785,6 +793,16 @@ endif
 COMMONFLAG := $(INCLUDE) $(SIMU_OPTION)
 CXXFLAG    += $(COMMONFLAG) $(OPENMPFLAG)
 
+# grep git information
+GIT_INFO    :=
+GIT_FAIL    := $(shell git rev-parse 2>&1 | cat)
+ifeq "$(GIT_FAIL)" ""
+   GIT_INFO += -DGIT_COMMIT="`git rev-parse HEAD`"              # commit
+   GIT_INFO += -DGIT_BRANCH="`git rev-parse --abbrev-ref HEAD`" # branch
+else
+   GIT_INFO += -DGIT_COMMIT="N/A"
+   GIT_INFO += -DGIT_BRANCH="N/A"
+endif
 
 # NVCC flags
 # -------------------------------------------------------------------------------
@@ -808,6 +826,9 @@ else ifeq "$(filter -DGPU_ARCH=VOLTA,  $(SIMU_OPTION))" "-DGPU_ARCH=VOLTA"
    NVCCFLAG_ARCH += -gencode arch=compute_70,code=\"compute_70,sm_70\"
 else ifeq "$(filter -DGPU_ARCH=TURING,  $(SIMU_OPTION))" "-DGPU_ARCH=TURING"
    NVCCFLAG_ARCH += -gencode arch=compute_75,code=\"compute_75,sm_75\"
+else ifeq "$(filter -DGPU_ARCH=AMPERE,  $(SIMU_OPTION))" "-DGPU_ARCH=AMPERE"
+   NVCCFLAG_ARCH += -gencode arch=compute_80,code=\"compute_80,sm_80\"
+   NVCCFLAG_ARCH += -gencode arch=compute_86,code=\"compute_86,sm_86\"
 else ifeq "$(filter -DGPU, $(SIMU_OPTION))" "-DGPU"
    $(error unknown GPU_ARCH (please set it in the Makefile))
 endif
@@ -859,6 +880,12 @@ else ifeq "$(filter -DGPU_ARCH=TURING, $(SIMU_OPTION))" "-DGPU_ARCH=TURING"
    else
      NVCCFLAG_FLU += --maxrregcount=128
    endif
+else ifeq "$(filter -DGPU_ARCH=AMPERE, $(SIMU_OPTION))" "-DGPU_ARCH=AMPERE"
+   ifeq "$(filter -DFLOAT8, $(SIMU_OPTION))" "-DFLOAT8"
+     NVCCFLAG_FLU += --maxrregcount=192
+   else
+     NVCCFLAG_FLU += --maxrregcount=128
+   endif
 endif
 
 # Poisson/gravity solvers flags
@@ -875,6 +902,7 @@ NVCC         := $(strip $(NVCC))
 NVCCFLAG_COM := $(strip $(NVCCFLAG_COM))
 NVCCFLAG_FLU := $(strip $(NVCCFLAG_FLU))
 NVCCFLAG_POT := $(strip $(NVCCFLAG_POT))
+GIT_INFO     := $(strip $(GIT_INFO))
 
 
 # implicit rules (do NOT modify the order of the following rules)
@@ -912,7 +940,7 @@ endif # GPU
 # CPU codes
 $(OBJ_PATH)/$(PREFIX_CPU)%.o : %.cpp
 	@echo "Compiling $<"
-	$(ECHO)$(CXX) $(CXXFLAG) -o $@ -c $<
+	$(ECHO)$(CXX) $(CXXFLAG) $(GIT_INFO) -o $@ -c $<
 
 
 # linking
@@ -949,6 +977,4 @@ clean :
 	@rm -f $(OBJ_PATH)/*
 	@rm -f $(EXECUTABLE)
 	@rm -f ./*.linkinfo
-
-
 
