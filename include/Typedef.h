@@ -53,7 +53,16 @@ const TestProbID_t
    TESTPROB_HYDRO_PARTICLE_EQUILIBRIUM_IC      =   17,
    TESTPROB_HYDRO_BARRED_POT                   =   51,
 
-   TESTPROB_ELBDM_EXTPOT                       = 1000;
+   TESTPROB_ELBDM_EXTPOT                       = 1000,
+   TESTPROB_ELBDM_JEANS_INSTABILITY_COMOVING   = 1001,
+   TESTPROB_ELBDM_JEANS_INSTABILITY_PHYSICAL   = 1002,
+   TESTPROB_ELBDM_SOLITON                      = 1003,
+   TESTPROB_ELBDM_SELF_SIMILAR_HALO            = 1004,
+   TESTPROB_ELBDM_VORTEX_PAIR_ROTATING         = 1005,
+   TESTPROB_ELBDM_VORTEX_PAIR_LINEAR           = 1006,
+   TESTPROB_ELBDM_ISOLATED_HALO                = 1007,
+   TESTPROB_ELBDM_GAUSSIAN_WAVE_PACKET         = 1008,
+   TESTPROB_ELBDM_LSS                          = 1009;
 
 
 // program initialization options
@@ -151,7 +160,7 @@ const OptOutputParMode_t
    OUTPUT_PAR_CBIN = 2;
 
 
-// options in "Prepare_PatchData"
+// options in Prepare_PatchData()
 typedef int PrepUnit_t;
 const PrepUnit_t
    UNIT_PATCH      = 1,
@@ -267,7 +276,7 @@ const OptFluBC_t
    BC_FLU_USER       = 4;
 
 
-// the gravity boundary conditions
+// gravity boundary conditions
 typedef int OptPotBC_t;
 const OptPotBC_t
 #ifdef GRAVITY
@@ -433,6 +442,16 @@ typedef int SF_CreateStarScheme_t;
 const SF_CreateStarScheme_t
    SF_CREATE_STAR_SCHEME_NONE  = 0,
    SF_CREATE_STAR_SCHEME_AGORA = 1;
+#endif
+
+
+// ELBDM_REMOVE_MOTION_CM options
+#if ( MODEL == ELBDM )
+typedef int ELBDMRemoveMotionCM_t;
+const ELBDMRemoveMotionCM_t
+   ELBDM_REMOVE_MOTION_CM_NONE       = 0,
+   ELBDM_REMOVE_MOTION_CM_INIT       = 1,
+   ELBDM_REMOVE_MOTION_CM_EVERY_STEP = 2;
 #endif
 
 

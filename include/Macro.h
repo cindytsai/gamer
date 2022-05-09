@@ -114,10 +114,14 @@
 #elif ( MODEL == ELBDM )
 #  define NCOMP_FLUID         3
 #  define NFLUX_FLUID         1
+#  define NCOMP_MAG           0
+#  define NCOMP_ELE           0
 
 #elif ( MODEL == PAR_ONLY )
 #  define NCOMP_FLUID         0
 #  define NFLUX_FLUID         0
+#  define NCOMP_MAG           0
+#  define NCOMP_ELE           0
 
 #else
 #  error : ERROR : unsupported MODEL (please edit NCOMP_FLUID and NFLUX_FLUID for the new MODEL) !!
@@ -355,6 +359,7 @@
 
 #elif ( MODEL == ELBDM )
 // field indices of fluid[] --> element of [0 ... NCOMP_FLUID-1]
+// --> must NOT modify their values
 #  define  DENS               0
 #  define  REAL               1
 #  define  IMAG               2
@@ -369,6 +374,7 @@
 #  define _DENS               ( 1L << DENS )
 #  define _REAL               ( 1L << REAL )
 #  define _IMAG               ( 1L << IMAG )
+#  define _MAG                0
 
 // bitwise flux indices
 #  define _FLUX_DENS          ( 1L << FLUX_DENS )
@@ -379,6 +385,7 @@
 
 
 #elif ( MODEL == PAR_ONLY )
+#  define _MAG                0
 #  define _DERIVED            0
 #  define NDERIVE             0
 
@@ -670,6 +677,9 @@
 #if ( MODEL == HYDRO )
 #  define EOS_NAUX_MAX           20    // EoS_AuxArray_Flt/Int[]
 #  define EOS_NTABLE_MAX         20    // *_EoS_Table[]
+#else
+#  define EOS_NAUX_MAX           0
+#  define EOS_NTABLE_MAX         0
 #endif
 
 #ifdef GRAVITY
@@ -896,9 +906,10 @@
 #define MIN( a, b )     (  ( (a) < (b) ) ? (a) : (b)  )
 
 
-// square/cube function
-#define SQR(  a )       ( (a)*(a)     )
-#define CUBE( a )       ( (a)*(a)*(a) )
+// power functions
+#define SQR(  a )       ( (a)*(a)         )
+#define CUBE( a )       ( (a)*(a)*(a)     )
+#define POW4( a )       ( (a)*(a)*(a)*(a) )
 
 
 // 3D to 1D array indices transformation

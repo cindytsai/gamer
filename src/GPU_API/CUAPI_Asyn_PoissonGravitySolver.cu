@@ -56,11 +56,9 @@ void CUPOT_HydroGravitySolver(
 
 #elif ( MODEL == ELBDM )
 __global__
-void CUPOT_ELBDMGravitySolver(       real g_Flu_Array[][GRA_NIN][ PS1*PS1*PS1 ],
-                               const real g_Pot_Array[][ GRA_NXT*GRA_NXT*GRA_NXT ],
-                               const double g_Corner_Array[][3],
+void CUPOT_ELBDMGravitySolver(       real g_Flu_Array[][GRA_NIN][ CUBE(PS1) ],
+                               const real g_Pot_Array[][ CUBE(GRA_NXT) ],
                                const real EtaDt, const real dh, const real Lambda );
-
 #else
 #error : ERROR : unsupported MODEL !!
 #endif // MODEL
@@ -470,7 +468,6 @@ void CUAPI_Asyn_PoissonGravitySolver( const real h_Rho_Array    [][RHO_NXT][RHO_
          CUPOT_ELBDMGravitySolver <<< NPatch_per_Stream[s], Gra_Block_Dim, 0, Stream[s] >>>
                                   ( d_Flu_Array_G      + UsedPatch[s],
                                     d_Pot_Array_P_Out  + UsedPatch[s],
-                                    d_Corner_Array_PGT + UsedPatch[s],
                                     ELBDM_EtaDt, dh, ELBDM_Lambda );
 
 #        else

@@ -12,6 +12,8 @@
 // Structure   :  EoS_t
 // Description :  Data structure storing the EoS variables to be passed to the CPU/GPU solvers
 //
+// Note        :  1. When MODEL != HYDRO, we still define EoS_t for compilation but remove all data members
+//
 // Data Member :  *_AuxArrayDevPtr_* : Auxiliary array pointers
 //                                     --> For GPU, we store the addresses of constant memory arrays, which
 //                                         should NOT be used by host
@@ -25,6 +27,7 @@
 struct EoS_t
 {
 
+#  if ( MODEL == HYDRO )
 // auxiliary array pointers
    double *AuxArrayDevPtr_Flt;
    int    *AuxArrayDevPtr_Int;
@@ -40,6 +43,7 @@ struct EoS_t
 
 // table pointers
    real **Table;
+#  endif
 
 }; // struct EoS_t
 

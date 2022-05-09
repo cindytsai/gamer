@@ -44,6 +44,14 @@ TESTPROB_ID                   0           # test problem ID [0]
                                           #   16: HYDRO Jeans instability (+GRAVITY) [+MHD]
                                           #   17: HYDRO particle in equilibrium (+GRAVITY & PARTICLE)
                                           # 1000: ELBDM external potential (+GRAVITY)
+                                          # 1001: ELBDM Jeans instability in the comoving frame (+GRAVITY, +COMOVING)
+                                          # 1002: ELBDM Jeans instability in the physical frame (+GRAVITY)
+                                          # 1003: ELBDM soliton merger (+GRAVITY)
+                                          # 1004: ELBDM self-similar halo (+GRAVITY, +COMOVING)
+                                          # 1005: ELBDM rotating vortex pair
+                                          # 1006: ELBDM vortex pair in linear motion
+                                          # 1007: ELBDM halo extracted from a large-scale structure simulation (+GRAVITY)
+                                          # 1008: ELBDM 1D Gaussian wave packet
 
 
 # code units (in cgs)
@@ -201,7 +209,9 @@ ELBDM_MASS                    1.0         # particle mass in ev/c^2 (input unit 
 ELBDM_PLANCK_CONST            1.0         # reduced Planck constant (will be overwritten if OPT__UNIT or COMOVING is on)
 ELBDM_LAMBDA                  1.0         # quartic self-interaction coefficient [1.0] ##QUARTIC_SELF_INTERACTION ONLY##
 ELBDM_TAYLOR3_COEFF           0.166666667 # 3rd Taylor expansion coefficient [1.0/6.0] ##USELESS if ELBDM_TAYLOR3_AUTO is on##
-ELBDM_TAYLOR3_AUTO            1           # Optimize ELBDM_TAYLOR3_COEFF automatically to minimize the damping at kmax [1]
+ELBDM_TAYLOR3_AUTO            0           # Optimize ELBDM_TAYLOR3_COEFF automatically to minimize the damping at kmax [0]
+ELBDM_REMOVE_MOTION_CM        0           # remove the motion of center-of-mass (must enable OPT__CK_CONSERVATION):
+                                          # (0=off, 1=init, 2=every step) [0]
 
 
 # fluid solvers in all models

@@ -49,10 +49,10 @@ void CPU_HydroGravitySolver(
    const double TimeNew, const double TimeOld, const real MinEint );
 
 #elif ( MODEL == ELBDM )
-void CPU_ELBDMGravitySolver(       real Flu_Array[][GRA_NIN][PATCH_SIZE][PATCH_SIZE][PATCH_SIZE],
-                             const real Pot_Array[][GRA_NXT][GRA_NXT][GRA_NXT],
-                             const double Corner_Array[][3],
-                             const int NPatchGroup, const real EtaDt, const real dh, const real Lambda );
+void CPU_ELBDMGravitySolver  (       real   g_Flu_Array[][GRA_NIN][ CUBE(PS1) ],
+                               const real   g_Pot_Array[][ CUBE(GRA_NXT) ],
+                               const int NPatchGroup,
+                               const real EtaDt, const real dh, const real Lambda );
 
 #else
 #error : ERROR : unsupported MODEL !!
@@ -213,7 +213,9 @@ void CPU_PoissonGravitySolver( const real h_Rho_Array    [][RHO_NXT][RHO_NXT][RH
                               TimeNew, TimeOld, MinEint );
 
 #     elif ( MODEL == ELBDM )
-      CPU_ELBDMGravitySolver( h_Flu_Array, h_Pot_Array_Out, h_Corner_Array, NPatchGroup, ELBDM_Eta*dt, dh, ELBDM_Lambda );
+      CPU_ELBDMGravitySolver( (real(*)[GRA_NIN][ CUBE(PS1) ]) h_Flu_Array,
+                              (real(*)[ CUBE(GRA_NXT) ])      h_Pot_Array_Out,
+                              NPatchGroup, ELBDM_Eta*dt, dh, ELBDM_Lambda );
 
 #     else
 #     error : ERROR : unsupported MODEL !!

@@ -24,62 +24,66 @@ void SetTempIntPara( const int lv, const int Sg0, const double PrepTime, const d
 //                   --> Temporal interpolation/extrapolation will be conducted automatically if PrepTime
 //                       is NOT equal to the time of data stored previously (e.g., FluSgTime[0/1])
 //
-// Parameter   :  lv                : Target "coarse-grid" refinement level
-//                PID               : Patch ID at level "lv" used for interpolation
-//                IntData_CC/FC     : Arrays to store the cell-/face-centered interpolation results
-//                FSide             : Fine-patch sibling index (0~25) for determining the interpolation region
-//                PrepTime          : Target physical time to prepare data
-//                GhostSize         : Number of ghost zones
-//                IntScheme_CC      : Interpolation scheme for the cell-centered variables
-//                                    --> Supported schemes include
-//                                        INT_MINMOD1D : MinMod-1D
-//                                        INT_MINMOD3D : MinMod-3D
-//                                        INT_VANLEER  : vanLeer
-//                                        INT_CQUAD    : conservative quadratic
-//                                        INT_QUAD     : quadratic
-//                                        INT_CQUAR    : conservative quartic
-//                                        INT_QUAR     : quartic
-//                IntScheme_FC      : Interpolation scheme for the face-centered variables
-//                                    --> Supported schemes include
-//                                        INT_MINMOD1D : MinMod-1D
-//                                        INT_VANLEER  : vanLeer
-//                                        INT_CQUAD    : conservative quadratic
-//                                        INT_CQUAR    : conservative quartic
-//                NTSib             : Number of target sibling patches along different sibling directions
-//                TSib              : Target sibling indices along different sibling directions
-//                TVarCC            : Target cell-centered variables to be prepared
-//                                    --> Supported variables in different models:
-//                                        HYDRO : _DENS, _MOMX, _MOMY, _MOMZ, _ENGY, _VELX, _VELY, _VELZ, _PRES, _TEMP, _ENTR,
-//                                                [, _POTE]
-//                                        ELBDM : _DENS, _REAL, _IMAG [, _POTE]
-//                                    --> _FLUID, _PASSIVE, _TOTAL, and _DERIVED apply to all models
-//                NVarCC_Tot        : Total number of cell-centered variables to be prepared
-//                NVarCC_Flu        : Number of cell-centered fluid variables to be prepared
-//                                    --> Including passive scalars
-//                TVarCCIdxList_Flu : List recording the target cell-centered fluid and passive variable indices
-//                                    ( = [0 ... NCOMP_TOTAL-1] )
-//                NVarCC_Der        : Number of cell-centered derived variables to be prepared
-//                TVarCCList_Der    : List recording the target cell-centered derived variables
-//                TVarFC            : Target face-centered variables to be prepared
-//                                    --> Supported variables in different models:
-//                                        HYDRO with MHD : _MAG
-//                                        ELBDM          : none
-//                                    --> Note that for MHD it does NOT support preparing individual B component
-//                                        (e.g., _MAGX, _MAGY, _MAGZ) since the divergenece-free interpolation
-//                                        must work on all three components at once
-//                NVarFC_Tot        : Total number of face-centered variables to be prepared
-//                TVarFCIdxList     : List recording the target face-centered variable indices
-//                                    ( = [0 ... NCOMP_MAG-1] )
-//                IntPhase          : true --> Perform interpolation on rho/phase instead of real/imag parts in ELBDM
-//                FluBC             : Fluid boundary condition
-//                PotBC             : Gravity boundary condition (not used currently)
-//                BC_Face           : Priority of the B.C. along different boundary faces (z>y>x)
-//                MinPres/Temp/Entr : Minimum allowed pressure/temperature/entropy (<0.0 ==> off)
-//                DE_Consistency    : Ensure the consistency between pressure, total energy density, and the
-//                                    dual-energy variable when DUAL_ENERGY is on
-//                FInterface        : B field on the coarse-fine interfaces for the divergence-preserving interpolation
+// Parameter   :  lv                 : Target "coarse-grid" refinement level
+//                PID                : Patch ID at level "lv" used for interpolation
+//                IntData_CC/FC      : Arrays to store the cell-/face-centered interpolation results
+//                IntData_CC_IntTime : Array to store the cell-centered interpolation result when temporal interpolation
+//                                     is required
+//                                     --> Only used for ELBDM with IntPhase
+//                FSide              : Fine-patch sibling index (0~25) for determining the interpolation region
+//                PrepTime           : Target physical time to prepare data
+//                GhostSize          : Number of ghost zones
+//                IntScheme_CC       : Interpolation scheme for the cell-centered variables
+//                                     --> Supported schemes include
+//                                         INT_MINMOD1D : MinMod-1D
+//                                         INT_MINMOD3D : MinMod-3D
+//                                         INT_VANLEER  : vanLeer
+//                                         INT_CQUAD    : conservative quadratic
+//                                         INT_QUAD     : quadratic
+//                                         INT_CQUAR    : conservative quartic
+//                                         INT_QUAR     : quartic
+//                IntScheme_FC       : Interpolation scheme for the face-centered variables
+//                                     --> Supported schemes include
+//                                         INT_MINMOD1D : MinMod-1D
+//                                         INT_VANLEER  : vanLeer
+//                                         INT_CQUAD    : conservative quadratic
+//                                         INT_CQUAR    : conservative quartic
+//                NTSib              : Number of target sibling patches along different sibling directions
+//                TSib               : Target sibling indices along different sibling directions
+//                TVarCC             : Target cell-centered variables to be prepared
+//                                     --> Supported variables in different models:
+//                                         HYDRO : _DENS, _MOMX, _MOMY, _MOMZ, _ENGY, _VELX, _VELY, _VELZ, _PRES, _TEMP,
+//                                                 [, _POTE]
+//                                         ELBDM : _DENS, _REAL, _IMAG [, _POTE]
+//                                     --> _FLUID, _PASSIVE, _TOTAL, and _DERIVED apply to all models
+//                NVarCC_Tot         : Total number of cell-centered variables to be prepared
+//                NVarCC_Flu         : Number of cell-centered fluid variables to be prepared
+//                                     --> Including passive scalars
+//                TVarCCIdxList_Flu  : List recording the target cell-centered fluid and passive variable indices
+//                                     ( = [0 ... NCOMP_TOTAL-1] )
+//                NVarCC_Der         : Number of cell-centered derived variables to be prepared
+//                TVarCCList_Der     : List recording the target cell-centered derived variables
+//                TVarFC             : Target face-centered variables to be prepared
+//                                     --> Supported variables in different models:
+//                                         HYDRO with MHD : _MAG
+//                                         ELBDM          : none
+//                                     --> Note that for MHD it does NOT support preparing individual B component
+//                                         (e.g., _MAGX, _MAGY, _MAGZ) since the divergenece-free interpolation
+//                                         must work on all three components at once
+//                NVarFC_Tot         : Total number of face-centered variables to be prepared
+//                TVarFCIdxList      : List recording the target face-centered variable indices
+//                                     ( = [0 ... NCOMP_MAG-1] )
+//                IntPhase           : true --> Perform interpolation on rho/phase instead of real/imag parts in ELBDM
+//                FluBC              : Fluid boundary condition
+//                PotBC              : Gravity boundary condition (not used currently)
+//                BC_Face            : Priority of the B.C. along different boundary faces (z>y>x)
+//                MinPres/Temp       : Minimum allowed pressure/temperature (<0.0 ==> off)
+//                MinPres/Temp/Entr  : Minimum allowed pressure/temperature/entropy (<0.0 ==> off)
+//                DE_Consistency     : Ensure the consistency between pressure, total energy density, and the
+//                                     dual-energy variable when DUAL_ENERGY is on
+//                FInterface         : B field on the coarse-fine interfaces for the divergence-preserving interpolation
 //-------------------------------------------------------------------------------------------------------
-void InterpolateGhostZone( const int lv, const int PID, real IntData_CC[], real IntData_FC[],
+void InterpolateGhostZone( const int lv, const int PID, real IntData_CC[], real IntData_FC[], real IntData_CC_IntTime[],
                            const int FSide, const double PrepTime, const int GhostSize,
                            const IntScheme_t IntScheme_CC, const IntScheme_t IntScheme_FC,
                            const int NTSib[], int *TSib[], const long TVarCC, const int NVarCC_Tot,
@@ -144,6 +148,7 @@ void InterpolateGhostZone( const int lv, const int PID, real IntData_CC[], real 
 #  endif
    real FluidForEoS[NFluForEoS];
 #  endif
+
 
 // set up parameters for the adopted interpolation scheme
    int NSide_CC_Useless, CGhost_CC, CSize_CC[3], FSize_CC[3], CSize3D_CC, FSize3D_CC;
@@ -300,10 +305,15 @@ void InterpolateGhostZone( const int lv, const int PID, real IntData_CC[], real 
 
          CData_CC_Ptr[Idx] = amr->patch[FluSg][lv][PID]->fluid[TVarCCIdx_Flu][k1][j1][i1];
 
-         if ( FluIntTime ) // temporal interpolation
+//       temporal interpolation
+//       --> for IntPhase, apply temporal interpolation to density/phase instead of real/imaginary parts for better accuracy
+#        if ( MODEL == ELBDM )
+         if ( FluIntTime  &&  !IntPhase )
+#        else
+         if ( FluIntTime )
+#        endif
          CData_CC_Ptr[Idx] =   FluWeighting     *CData_CC_Ptr[Idx]
                              + FluWeighting_IntT*amr->patch[FluSg_IntT][lv][PID]->fluid[TVarCCIdx_Flu][k1][j1][i1];
-
          Idx ++;
       }}}
 
@@ -630,7 +640,13 @@ void InterpolateGhostZone( const int lv, const int PID, real IntData_CC[], real 
 
                CData_CC_Ptr[Idx] = amr->patch[FluSg][lv][SibPID]->fluid[TVarCCIdx_Flu][k2][j2][i2];
 
-               if ( FluIntTime ) // temporal interpolation
+//             temporal interpolation
+//             --> for IntPhase, apply temporal interpolation to density/phase instead of real/imaginary parts for better accuracy
+#              if ( MODEL == ELBDM )
+               if ( FluIntTime  &&  !IntPhase )
+#              else
+               if ( FluIntTime )
+#              endif
                CData_CC_Ptr[Idx] =   FluWeighting     *CData_CC_Ptr[Idx]
                                    + FluWeighting_IntT*amr->patch[FluSg_IntT][lv][SibPID]->fluid[TVarCCIdx_Flu][k2][j2][i2];
 
@@ -1142,17 +1158,21 @@ void InterpolateGhostZone( const int lv, const int PID, real IntData_CC[], real 
 
 
 // interpolation
-#  if ( MODEL == ELBDM )
-   real *CData_Dens = NULL;
-   real *CData_Real = NULL;
-   real *CData_Imag = NULL;
-   real *FData_Dens = NULL;
-   real *FData_Real = NULL;
-   real *FData_Imag = NULL;
-
 // c1. interpolation on phase in ELBDM
+#  if ( MODEL == ELBDM )
    if ( IntPhase )
    {
+//    determine the array indices
+      real *CData_Real = NULL;
+      real *CData_Imag = NULL;
+      real *CData_Dens = NULL;
+      real *CData_Phas = NULL;
+
+      real *FData_Real = NULL;
+      real *FData_Imag = NULL;
+      real *FData_Dens = NULL;
+      real *FData_Phas = NULL;
+
       int DensIdx=-1, RealIdx=-1, ImagIdx=-1;
 
       for (int v=0; v<NVarCC_Flu; v++)
@@ -1170,15 +1190,19 @@ void InterpolateGhostZone( const int lv, const int PID, real IntData_CC[], real 
          Aux_Error( ERROR_INFO, "real and/or imag parts are not found for phase interpolation in ELBDM !!\n" );
 #     endif
 
-//    determine the array index to store density
-      CData_Dens = CData_CC   + ( (DensIdx==-1) ? ImagIdx : DensIdx )*CSize3D_CC;
+//    store density in the REAL component (if we are not actually preparing the density field) and
+//    phase in the IMAG component
       CData_Real = CData_CC   + RealIdx*CSize3D_CC;
       CData_Imag = CData_CC   + ImagIdx*CSize3D_CC;
-      FData_Dens = IntData_CC + ( (DensIdx==-1) ? ImagIdx : DensIdx )*FSize3D_CC;
+      CData_Dens = CData_CC   + ( (DensIdx==-1) ? RealIdx : DensIdx )*CSize3D_CC;
+      CData_Phas = CData_Imag;
+
       FData_Real = IntData_CC + RealIdx*FSize3D_CC;
       FData_Imag = IntData_CC + ImagIdx*FSize3D_CC;
+      FData_Dens = IntData_CC + ( (DensIdx==-1) ? RealIdx : DensIdx )*FSize3D_CC;
+      FData_Phas = FData_Imag;
 
-//    get the wrapped phase (store in the REAL component) and density (store in the IMAG component)
+//    get the density and wrapped phase
       real Re, Im;
 
       for (int t=0; t<CSize3D_CC; t++)
@@ -1186,8 +1210,12 @@ void InterpolateGhostZone( const int lv, const int PID, real IntData_CC[], real 
          Re = CData_Real[t];
          Im = CData_Imag[t];
 
-         CData_Real[t] = ATAN2( Im, Re );
-         if ( DensIdx == -1 )
+//###ISSUE: atan2() sometimes returns NaN when both inputs are zero, not sure why ...
+//          --> this seems to provide a temporary fix (but needs to be checked further)
+         if ( Re == (real)0.0  &&  Im == (real)0.0 )  CData_Phas[t] = (real)0.0;
+         else                                         CData_Phas[t] = ATAN2( Im, Re );
+
+         if ( DensIdx == -1 ) // only need to recalculate density if it's not prepared already
          CData_Dens[t] = Re*Re + Im*Im;
       }
 
@@ -1197,65 +1225,212 @@ void InterpolateGhostZone( const int lv, const int PID, real IntData_CC[], real 
                    ALL_CONS_NO, INT_PRIM_NO, INT_FIX_MONO_COEFF );
 
 //    interpolate phase
-      Interpolate( CData_Real, CSize_CC, CStart_CC, CRange_CC, FData_Real, FSize_CC, FStart_CC,
+      Interpolate( CData_Phas, CSize_CC, CStart_CC, CRange_CC, FData_Phas, FSize_CC, FStart_CC,
                    1, IntScheme_CC, PhaseUnwrapping_Yes, &Monotonicity_No, IntOppSign0thOrder_No,
                    ALL_CONS_NO, INT_PRIM_NO, INT_FIX_MONO_COEFF );
-   } // if ( IntPhase )
 
 
-// c2. interpolation on real/imag parts in ELBDM
-   else // if ( IntPhase )
-   {
-      Interpolate( CData_CC, CSize_CC, CStart_CC, CRange_CC, IntData_CC, FSize_CC, FStart_CC,
-                   NVarCC_Flu, IntScheme_CC, PhaseUnwrapping_No, Monotonicity_CC, IntOppSign0thOrder_No,
-                   ALL_CONS_NO, INT_PRIM_NO, INT_FIX_MONO_COEFF );
-   } // if ( IntPhase ) ... else ...
+//    temporal interpolation
+//    --> apply it to density/phase instead of real/imaginary parts for better accuracy
+      if ( FluIntTime )
+      {
+         const int TVarCCIdxList_Flu_IntTime[2] = { REAL, IMAG };
+         const int NVarCC_Flu_IntTime           = 2;
 
-// retrieve real and imaginary parts when phase interpolation is adopted
-   if ( IntPhase )
-   {
-      real Amp, Phase, Rho;
+//       a. fill up the central region of CData_CC[] with the data at FluSg_IntT
+//       ------------------------------------------------------------------------------------------------------------
+         CData_CC_Ptr = CData_CC;
+
+         for (int v=0; v<NVarCC_Flu_IntTime; v++)
+         {
+            TVarCCIdx_Flu = TVarCCIdxList_Flu_IntTime[v];
+
+            for (int k=0; k<Loop1[2]; k++)   {  k1 = k + Disp1[2];   k2 = k + Disp2[2];
+            for (int j=0; j<Loop1[1]; j++)   {  j1 = j + Disp1[1];   j2 = j + Disp2[1];
+                                                Idx = IDX321( Disp2[0], j2, k2, CSize_CC[0], CSize_CC[1] );
+            for (i1=Disp1[0]; i1<Disp1[0]+Loop1[0]; i1++)   {
+
+               CData_CC_Ptr[Idx] = amr->patch[FluSg_IntT][lv][PID]->fluid[TVarCCIdx_Flu][k1][j1][i1];
+
+               Idx ++;
+            }}}
+
+            CData_CC_Ptr += CSize3D_CC;
+         }
+
+
+//       b. fill up the ghost zone of CData_CC[] with the data at FluSg_IntT
+//       ------------------------------------------------------------------------------------------------------------
+         for (int s=0; s<NTSib[FSide]; s++)
+         {
+            CSide  = TSib[FSide][s];
+            SibPID = amr->patch[0][lv][PID]->sibling[CSide];
+
+            for (int d=0; d<3; d++)
+            {
+               Loop2[d] = Table_01( FSide, CSide, 'x'+d, CGrid_CC_PID, CGhost_CC, CGhost_CC, PS1, CGhost_CC, CGhost_CC, CGrid_CC_PID );
+               Disp3[d] = Table_01( FSide, CSide, 'x'+d, 0, CGrid_CC_PID, 0, CGhost_CC, CGhost_CC+PS1, 0, CGhost_CC );
+               Disp4[d] = Table_01( FSide, CSide, 'x'+d, PS1-CGrid_CC_PID, 0, PS1-CGhost_CC, 0, 0, PS1-CGhost_CC, 0 );
+            }
+
+//          b1. if the target sibling patch exists --> just copy data from the nearby patch at the same level
+            if ( SibPID >= 0 )
+            {
+               CData_CC_Ptr = CData_CC;
+
+               for (int v=0; v<NVarCC_Flu_IntTime; v++)
+               {
+                  TVarCCIdx_Flu = TVarCCIdxList_Flu_IntTime[v];
+
+                  for (int k=0; k<Loop2[2]; k++)   {  k1 = k + Disp3[2];   k2 = k + Disp4[2];
+                  for (int j=0; j<Loop2[1]; j++)   {  j1 = j + Disp3[1];   j2 = j + Disp4[1];
+                                                      Idx = IDX321( Disp3[0], j1, k1, CSize_CC[0], CSize_CC[1] );
+                  for (i2=Disp4[0]; i2<Disp4[0]+Loop2[0]; i2++)   {
+
+                     CData_CC_Ptr[Idx] = amr->patch[FluSg_IntT][lv][SibPID]->fluid[TVarCCIdx_Flu][k2][j2][i2];
+
+                     Idx ++;
+                  }}}
+
+                  CData_CC_Ptr += CSize3D_CC;
+               }
+            } // if ( SibPID >= 0 )
+
+//          b2. if the target sibling patch does not exist --> something is wrong !!
+            else if ( SibPID == -1 )
+               Aux_Error( ERROR_INFO, "incorrect parameter %s = %d (Rank %d, Lv %d, PID %d, CSide %d) !!\n",
+                          "SibPID", SibPID, MPI_Rank, lv, PID, CSide );
+
+//          b3. if the target sibling patch lies outside the simulation domain --> apply the specified B.C.
+            else if ( SibPID <= SIB_OFFSET_NONPERIODIC )
+            {
+               CData_CC_Ptr = CData_CC;
+
+               for (int d=0; d<3; d++)
+               {
+                  BC_Idx_Start[d] = Disp3[d];
+                  BC_Idx_End  [d] = Loop2[d] + BC_Idx_Start[d] - 1;
+               }
+
+               BC_Sibling = SIB_OFFSET_NONPERIODIC - SibPID;
+
+               switch ( FluBC[ BC_Face[BC_Sibling] ] )
+               {
+                  case BC_FLU_USER:
+                     Flu_BoundaryCondition_User( CData_CC_Ptr, NVarCC_Flu_IntTime,
+                                                 CSize_CC[0], CSize_CC[1], CSize_CC[2], BC_Idx_Start, BC_Idx_End,
+                                                 TVarCCIdxList_Flu_IntTime, PrepTime, dh, xyz_flu, _REAL|_IMAG, lv );
+                  break;
+
+                  default:
+                     Aux_Error( ERROR_INFO, "unsupported fluid B.C. (%d) !!\n", FluBC[ BC_Face[BC_Sibling] ] );
+               } // switch ( FluBC[ BC_Face[BC_Sibling] ] )
+            } // else if ( SibPID <= SIB_OFFSET_NONPERIODIC )
+
+            else
+               Aux_Error( ERROR_INFO, "SibPID == %d (PID %d, CSide %d) !!\n", SibPID, PID, CSide );
+
+         } // for (int s=0; s<NTSib[FSide]; s++)
+
+
+//       get the density and wrapped phase at FluSg_IntT
+#        ifdef GAMER_DEBUG
+         if ( IntData_CC_IntTime == NULL )   Aux_Error( ERROR_INFO, "IntData_CC_IntTime == NULL !!\n" );
+#        endif
+
+         real *CData_Real_IntTime = CData_CC           + 0*CSize3D_CC;
+         real *CData_Imag_IntTime = CData_CC           + 1*CSize3D_CC;
+         real *CData_Dens_IntTime = CData_Real_IntTime;
+         real *CData_Phas_IntTime = CData_Imag_IntTime;
+
+         real *FData_Dens_IntTime = IntData_CC_IntTime + 0*FSize3D_CC;
+         real *FData_Phas_IntTime = IntData_CC_IntTime + 1*FSize3D_CC;
+
+         for (int t=0; t<CSize3D_CC; t++)
+         {
+            Re = CData_Real_IntTime[t];
+            Im = CData_Imag_IntTime[t];
+
+//###ISSUE: atan2() sometimes returns NaN when both inputs are zero, not sure why ...
+//          --> this seems to provide a temporary fix (but needs to be checked further)
+            if ( Re == (real)0.0  &&  Im == (real)0.0 )  CData_Phas_IntTime[t] = (real)0.0;
+            else                                         CData_Phas_IntTime[t] = ATAN2( Im, Re );
+
+            CData_Dens_IntTime[t] = Re*Re + Im*Im;
+         }
+
+//       interpolate density
+         Interpolate( CData_Dens_IntTime, CSize_CC, CStart_CC, CRange_CC,
+                      FData_Dens_IntTime, FSize_CC, FStart_CC,
+                      1, IntScheme_CC, PhaseUnwrapping_No, &Monotonicity_Yes, IntOppSign0thOrder_No,
+                      ALL_CONS_NO, INT_PRIM_NO, INT_FIX_MONO_COEFF );
+
+//       interpolate phase
+         Interpolate( CData_Phas_IntTime, CSize_CC, CStart_CC, CRange_CC,
+                      FData_Phas_IntTime, FSize_CC, FStart_CC,
+                      1, IntScheme_CC, PhaseUnwrapping_Yes, &Monotonicity_No, IntOppSign0thOrder_No,
+                      ALL_CONS_NO, INT_PRIM_NO, INT_FIX_MONO_COEFF );
+
+
+//       temporal interpolation
+         for (int t=0; t<FSize3D_CC; t++)
+         {
+//          must unwrap phase before interpolating it
+            FData_Phas_IntTime[t] = ELBDM_UnwrapPhase( FData_Phas[t], FData_Phas_IntTime[t] );
+
+            FData_Dens[t] = FluWeighting     *FData_Dens        [t]
+                          + FluWeighting_IntT*FData_Dens_IntTime[t];
+            FData_Phas[t] = FluWeighting     *FData_Phas        [t]
+                          + FluWeighting_IntT*FData_Phas_IntTime[t];
+         }
+      } // FluIntTime
+
+
+//    density and phase --> real and imaginary parts
+      real Dens, Phase, Amp;
 
       for (int t=0; t<FSize3D_CC; t++)
       {
-         Phase = FData_Real[t];
-         Rho   = FData_Dens[t];
+         Dens  = FData_Dens[t];
+         Phase = FData_Phas[t];
 
 //       be careful about the negative density introduced from the round-off errors
 //       --> note that we check minimum density in the end of Prepare_PatchData()
-         if ( Rho < (real)0.0 )
+         if ( Dens < (real)0.0 )
          {
             FData_Dens[t] = (real)0.0;
-            Rho           = (real)0.0;
+            Dens          = (real)0.0;
          }
 
-         Amp           = SQRT( Rho );
+         Amp           = SQRT( Dens );
          FData_Real[t] = Amp*COS( Phase );
          FData_Imag[t] = Amp*SIN( Phase );
       }
-   }
-
-#  else // #if ( MODEL == ELBDM )
+   } // if ( IntPhase )
 
 
-// c3. interpolation on original cell-centered variables for models != ELBDM
-
-// when TVarCC==_TOTAL, enable INT_PRIM_YES to perform interpolation on primitive variables when
-// interpolation on conserved variables fails
-// --> still preserve conservation because ghost zones do not affect conservation
-   const AllCons_t AllCons = ( TVarCC == _TOTAL ) ? ALL_CONS_YES : ALL_CONS_NO;
-   Interpolate( CData_CC, CSize_CC, CStart_CC, CRange_CC, IntData_CC, FSize_CC, FStart_CC, NVarCC_Flu,
-                IntScheme_CC, PhaseUnwrapping_No, Monotonicity_CC, INT_OPP_SIGN_0TH_ORDER, AllCons,
-                (AllCons)?INT_PRIM_YES:INT_PRIM_NO,
-                (AllCons)?INT_REDUCE_MONO_COEFF:INT_FIX_MONO_COEFF );
-
-
-#  endif // #if ( MODEL == ELBDM ) ... else ...
+// c2. interpolation on original variables
+   else // if ( IntPhase )
+#  endif // if ( MODEL == ELBDM )
+   {
+//    when TVarCC==_TOTAL, enable INT_PRIM_YES to perform interpolation on primitive variables when
+//    interpolation on conserved variables fails
+//    --> still preserve conservation because ghost zones do not affect conservation
+#     if ( MODEL == HYDRO )
+      const AllCons_t AllCons = ( TVarCC == _TOTAL ) ? ALL_CONS_YES : ALL_CONS_NO;
+#     else
+      const AllCons_t AllCons = ALL_CONS_NO;
+#     endif
+      Interpolate( CData_CC, CSize_CC, CStart_CC, CRange_CC, IntData_CC, FSize_CC, FStart_CC, NVarCC_Flu,
+                   IntScheme_CC, PhaseUnwrapping_No, Monotonicity_CC, INT_OPP_SIGN_0TH_ORDER, AllCons,
+                   (AllCons)?INT_PRIM_YES:INT_PRIM_NO,
+                   (AllCons)?INT_REDUCE_MONO_COEFF:INT_FIX_MONO_COEFF );
+   } // if ( IntPhase ) ... else ...
 
    NVarCC_SoFar = NVarCC_Flu;
 
 
-// c4. interpolation on derived variables
+// c3. interpolation on derived variables
 #  if   ( MODEL == HYDRO )
 // we now apply monotonic interpolation to ALL fluid variables
    if ( PrepVx )
@@ -1320,7 +1495,7 @@ void InterpolateGhostZone( const int lv, const int PID, real IntData_CC[], real 
 #  endif // MODEL
 
 
-// c5. interpolation on potential
+// c4. interpolation on potential
 #  ifdef GRAVITY
    if ( PrepPot )
    {
@@ -1333,11 +1508,11 @@ void InterpolateGhostZone( const int lv, const int PID, real IntData_CC[], real 
 #  endif
 
 
-// c6. interpolation on face-centered variables
+// c5. interpolation on face-centered variables
    if ( NVarFC_Tot > 0 )
    {
 #     ifdef MHD
-//    c6-1. set the array indices
+//    c5-1. set the array indices
       real *FData_FC[3] = { IntData_FC,
                             IntData_FC + FSize3D_FC[0],
                             IntData_FC + FSize3D_FC[0] + FSize3D_FC[1] };
@@ -1354,7 +1529,7 @@ void InterpolateGhostZone( const int lv, const int PID, real IntData_CC[], real 
          }
       }
 
-//    c6-2. divergence-perserving interpolation
+//    c5-2. divergence-perserving interpolation
       MHD_InterpolateBField( (const real**)CData_FC, CSize_FC, CStart_FC, CRange_FC,
                              FData_FC, FSize_FC, FStart_FC, FInterface,
                              IntScheme_FC, Monotonicity_Yes );

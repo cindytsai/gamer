@@ -164,7 +164,8 @@ Procedure for outputting new variables:
 //                2305 : 2018/12/15 --> remove variables related to the WAF scheme
 //                2306 : 2018/12/25 --> replace DT_GRA_BLOCK_SIZE_Z by DT_GRA_BLOCK_SIZE
 //                2307 : 2018/12/27 --> replace GRA_BLOCK_SIZE_Z by GRA_BLOCK_SIZE
-//                2308 : 2019/03/14 --> add OPT__RECORD_NOTE and OPT__RECORD_UNPHY
+//                2308a: 2019/01/24 --> add ELBDM_REMOVE_MOTION_CM
+//                2308b: 2019/03/14 --> add OPT__RECORD_NOTE and OPT__RECORD_UNPHY
 //                2309 : 2019/03/27 --> add OPT__FIXUP_ELECTRIC
 //                2310 : 2019/04/20 --> add OPT__CK_INTERFACE_B
 //                2311 : 2019/05/22 --> add OPT__CK_DIVERGENCE_B
@@ -2233,9 +2234,11 @@ void FillIn_SymConst( SymConst_t &SymConst )
    SymConst.Src_BlockSize        = SRC_BLOCK_SIZE;
    SymConst.Src_GhostSize        = SRC_GHOST_SIZE;
    SymConst.Src_Nxt              = SRC_NXT;
+#  if ( MODEL == HYDRO )
    SymConst.Src_NAuxDlep         = SRC_NAUX_DLEP;
    SymConst.Src_DlepProfNVar     = SRC_DLEP_PROF_NVAR;
    SymConst.Src_DlepProfNBinMax  = SRC_DLEP_PROF_NBINMAX;
+#  endif
    SymConst.Src_NAuxUser         = SRC_NAUX_USER;
 
    SymConst.Der_GhostSize        = DER_GHOST_SIZE;
@@ -2421,6 +2424,7 @@ void FillIn_InputPara( InputPara_t &InputPara, const int NFieldStored, char Fiel
 #  endif
    InputPara.ELBDM_Taylor3_Coeff     = ELBDM_TAYLOR3_COEFF;
    InputPara.ELBDM_Taylor3_Auto      = ELBDM_TAYLOR3_AUTO;
+   InputPara.ELBDM_RemoveMotionCM    = ELBDM_REMOVE_MOTION_CM;
 #  endif
 
 // fluid solvers in different models
@@ -3017,9 +3021,11 @@ void GetCompound_SymConst( hid_t &H5_TypeID )
    H5Tinsert( H5_TypeID, "Src_BlockSize",        HOFFSET(SymConst_t,Src_BlockSize       ), H5T_NATIVE_INT    );
    H5Tinsert( H5_TypeID, "Src_GhostSize",        HOFFSET(SymConst_t,Src_GhostSize       ), H5T_NATIVE_INT    );
    H5Tinsert( H5_TypeID, "Src_Nxt",              HOFFSET(SymConst_t,Src_Nxt             ), H5T_NATIVE_INT    );
+#  if ( MODEL == HYDRO )
    H5Tinsert( H5_TypeID, "Src_NAuxDlep",         HOFFSET(SymConst_t,Src_NAuxDlep        ), H5T_NATIVE_INT    );
    H5Tinsert( H5_TypeID, "Src_DlepProfNVar",     HOFFSET(SymConst_t,Src_DlepProfNVar    ), H5T_NATIVE_INT    );
    H5Tinsert( H5_TypeID, "Src_DlepProfNBinMax",  HOFFSET(SymConst_t,Src_DlepProfNBinMax ), H5T_NATIVE_INT    );
+#  endif
    H5Tinsert( H5_TypeID, "Src_NAuxUser",         HOFFSET(SymConst_t,Src_NAuxUser        ), H5T_NATIVE_INT    );
 
    H5Tinsert( H5_TypeID, "Der_GhostSize",        HOFFSET(SymConst_t,Der_GhostSize       ), H5T_NATIVE_INT    );
@@ -3258,6 +3264,7 @@ void GetCompound_InputPara( hid_t &H5_TypeID, const int NFieldStored )
 #  endif
    H5Tinsert( H5_TypeID, "ELBDM_Taylor3_Coeff",     HOFFSET(InputPara_t,ELBDM_Taylor3_Coeff    ), H5T_NATIVE_DOUBLE  );
    H5Tinsert( H5_TypeID, "ELBDM_Taylor3_Auto",      HOFFSET(InputPara_t,ELBDM_Taylor3_Auto     ), H5T_NATIVE_INT     );
+   H5Tinsert( H5_TypeID, "ELBDM_RemoveMotionCM",    HOFFSET(InputPara_t,ELBDM_RemoveMotionCM   ), H5T_NATIVE_INT     );
 #  endif
 
 // fluid solvers in different models

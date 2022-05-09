@@ -290,9 +290,11 @@ struct SymConst_t
    int    Src_BlockSize;
    int    Src_GhostSize;
    int    Src_Nxt;
+#  if ( MODEL == HYDRO )
    int    Src_NAuxDlep;
    int    Src_DlepProfNVar;
    int    Src_DlepProfNBinMax;
+#  endif
    int    Src_NAuxUser;
 
    int    Der_GhostSize;
@@ -470,6 +472,7 @@ struct InputPara_t
 #  endif
    double ELBDM_Taylor3_Coeff;
    int    ELBDM_Taylor3_Auto;
+   int    ELBDM_RemoveMotionCM;
 #  endif
 
 // fluid solvers in different models

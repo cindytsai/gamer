@@ -241,6 +241,9 @@ void Flu_FixUp_Flux( const int lv )
 
 #              elif ( MODEL == ELBDM  &&  defined CONSERVE_MASS )
                if ( CorrVal[DENS] <= MIN_DENS )
+
+#              else
+               if ( false )
 #              endif
                {
                   ApplyFix = false;
